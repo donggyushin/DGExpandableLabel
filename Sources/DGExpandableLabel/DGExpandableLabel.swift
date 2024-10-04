@@ -13,19 +13,34 @@ public struct DGExpandableLabel: View {
     let font: UIFont
     let lineLimit: Int
     
-    public init(_ text: String, lineLimit: Int, font: UIFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body)) {
+    let moreText: String
+    let lessText: String?
+    
+    public init(_ text: String, lineLimit: Int, font: UIFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body), moreText: String = "read more", lessText: String? = nil) {
         self.text = text
         _shrinkText =  State(wrappedValue: text)
         self.lineLimit = lineLimit
         self.font = font
+        self.moreText = moreText
+        self.lessText = lessText
     }
     
     public var body: some View {
         ZStack(alignment: .bottomLeading) {
             Group {
-                Text(self.expanded ? text : shrinkText) + Text(moreLessText)
-                    .bold()
-                    .foregroundColor(.black)
+                if #available(iOS 17, *) {
+                    Text(self.expanded ? text : shrinkText) + Text(expanded == false && truncated ? "..." : "") +
+                    Text(moreLessText)
+                        .foregroundStyle(Color(uiColor: .label))
+                        .underline()
+                        .bold()
+                } else {
+                    Text(self.expanded ? text : shrinkText) + Text(expanded == false && truncated ? "..." : "") +
+                    Text(moreLessText)
+                        .foregroundColor(Color(uiColor: .label))
+                        .underline()
+                        .bold()
+                }
             }
             .animation(.easeInOut(duration: 1.0), value: false)
             .lineLimit(expanded ? nil : lineLimit)
@@ -36,8 +51,9 @@ public struct DGExpandableLabel: View {
                     .background(GeometryReader { visibleTextGeometry in
                         Color.clear.onAppear() {
                             let size = CGSize(width: visibleTextGeometry.size.width, height: .greatestFiniteMagnitude)
-                            let attributes:[NSAttributedString.Key:Any] = [NSAttributedString.Key.font: font]
-
+                            
+                            let attributes:[NSAttributedString.Key:Any] = [.font: font]
+                            
                             ///Binary search until mid == low && mid == high
                             var low  = 0
                             var heigh = shrinkText.count
@@ -72,14 +88,16 @@ public struct DGExpandableLabel: View {
             .font(Font(font)) ///set default font
             ///
             if truncated {
-                Button(action: {
-                    expanded.toggle()
-                }, label: {
+                Button {
+                    if !(expanded && lessText == nil) {
+                        expanded.toggle()
+                    }
+                } label: {
                     HStack { //taking tap on only last line, As it is not possible to get 'see more' location
                         Spacer()
-                        Text("")
+                        Text("\n")
                     }.opacity(0)
-                })
+                }
             }
         }
     }
@@ -88,13 +106,8 @@ public struct DGExpandableLabel: View {
         if !truncated {
             return ""
         } else {
-            return self.expanded ? " read less" : " ... read more"
+            return self.expanded ? " \((lessText ?? ""))" : " \(moreText)"
         }
     }
-    
-}
 
-
-#Preview {
-    DGExpandableLabel("적절한텍스트개수로보여지는천이백자로통일하기로한다엑스의최대글자수는이백팔십자이며인스타그램과틱톡의글자수는이천이백자입니다크리에이터클럽의글자수를고민했는데이천이백자의댓글포함텍스트개수를통합하는것한줄의댓글은스물다섯자가가능한것으로파악이되었습니엑스의최대글자수는이백팔십자이며인스타그램과틱톡의글자수는이천이백자입니다크리에이터클럽의글자수를고민했는데이천이백자의댓글포함텍스트개수를통합하는것한줄의댓글은스물다섯자가가능한것으로파악이되었습니엑스의최대글자수는이백팔십자이며인스타그램과틱톡의글자수는이천이백자입니다크리에이터클럽의글자수를고민했는데이천이백자의댓글포함텍스트개수를통합하는것한줄의댓글은스물다섯자가가능한것으로파악이되었습니엑스의최대글자수는이백팔십자이며인스타그램과틱톡의글자수는이천이백자입니다크리에이터클럽의글자수를고민했는데이천이백자의댓글포함텍스트개수를통합하는것한줄의댓글은스물다섯자가가능한것으로파악이되었습니엑스의최대글자수는", lineLimit: 3)
 }
