@@ -15,14 +15,16 @@ public struct DGExpandableLabel: View {
     
     let moreText: String
     let lessText: String?
+    let moreButtonColor: Color
     
-    public init(_ text: String, lineLimit: Int, font: UIFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body), moreText: String = "read more", lessText: String? = nil) {
+    public init(_ text: String, lineLimit: Int, font: UIFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body), moreText: String = "read more", lessText: String? = nil, moreButtonColor: Color = Color(uiColor: .label)) {
         self.text = text
         _shrinkText =  State(wrappedValue: text)
         self.lineLimit = lineLimit
         self.font = font
         self.moreText = moreText
         self.lessText = lessText
+        self.moreButtonColor = moreButtonColor
     }
     
     public var body: some View {
@@ -31,13 +33,13 @@ public struct DGExpandableLabel: View {
                 if #available(iOS 17, *) {
                     Text(self.expanded ? text : shrinkText) + Text(expanded == false && truncated ? "..." : "") +
                     Text(moreLessText)
-                        .foregroundStyle(Color(uiColor: .label))
+                        .foregroundStyle(moreButtonColor)
                         .underline()
                         .bold()
                 } else {
                     Text(self.expanded ? text : shrinkText) + Text(expanded == false && truncated ? "..." : "") +
                     Text(moreLessText)
-                        .foregroundColor(Color(uiColor: .label))
+                        .foregroundColor(moreButtonColor)
                         .underline()
                         .bold()
                 }
